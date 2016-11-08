@@ -27,8 +27,8 @@
 # CONFIGURATION
 ################################################################################
 
-$tests_compiled = true
-$tests_compiled_coverage = true
+$tests_compiled = false
+$tests_compiled_coverage = false
 
 ################################################################################
 # THE ACTUAL DSL

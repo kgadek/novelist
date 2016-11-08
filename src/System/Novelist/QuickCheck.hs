@@ -44,7 +44,7 @@ arbitraryNovellaName Mixed       = ifM (biasedCoin 4)
                                      (arbitraryNovellaName AllDisabled)
 
 arbitraryNovella :: Validity -> QC.Gen N.Novella
-arbitraryNovella v = QC.sized arb
+arbitraryNovella v = N.Fix <$> QC.sized arb
   where arb n
           | n <= 0    = N.File <$> arbitraryNovellaName v
           | otherwise = QC.scale (`div` 2) $

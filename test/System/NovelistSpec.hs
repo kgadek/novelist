@@ -6,10 +6,13 @@
 module System.NovelistSpec (spec) where
 
 -- base
-import           Data.List (isSuffixOf)
-import           Data.Function (on)
+import           Prelude hiding ((.))
+import           Control.Category ((.))
 import           Control.Monad (liftM)
 import           Data.Coerce (coerce)
+import           Data.Function (on)
+import           Data.List (isSuffixOf)
+import           Data.Proxy
 
 -- fclabels
 import           Data.Label
@@ -48,19 +51,19 @@ spec =
           N.isNameEnabled "abc.disabled_not_really.disabled" @?= False
       describe "isEnabled" $ do
         it "accepts paths not ending with .disabled" $ do
-          N.isEnabled (N.File ""                       ) @?= True
-          N.isEnabled (N.File "abc"                    ) @?= True
-          N.isEnabled (N.File "abc.disabled_not_really") @?= True
-          N.isEnabled (N.Dir ""                        []) @?= True
-          N.isEnabled (N.Dir "abc"                     []) @?= True
-          N.isEnabled (N.Dir "abc.disabled_not_really" []) @?= True
+          N.isEnabled (N.Fix $ N.File ""                       ) @?= True
+          N.isEnabled (N.Fix $ N.File "abc"                    ) @?= True
+          N.isEnabled (N.Fix $ N.File "abc.disabled_not_really") @?= True
+          N.isEnabled (N.Fix $ N.Dir ""                        []) @?= True
+          N.isEnabled (N.Fix $ N.Dir "abc"                     []) @?= True
+          N.isEnabled (N.Fix $ N.Dir "abc.disabled_not_really" []) @?= True
         it "rejects paths ending with .disabled" $ do
-          N.isEnabled (N.File ".disabled"                       ) @?= False
-          N.isEnabled (N.File "abc.disabled"                    ) @?= False
-          N.isEnabled (N.File "abc.disabled_not_really.disabled") @?= False
-          N.isEnabled (N.Dir ".disabled"                        []) @?= False
-          N.isEnabled (N.Dir "abc.disabled"                     []) @?= False
-          N.isEnabled (N.Dir "abc.disabled_not_really.disabled" []) @?= False
+          N.isEnabled (N.Fix $ N.File ".disabled"                       ) @?= False
+          N.isEnabled (N.Fix $ N.File "abc.disabled"                    ) @?= False
+          N.isEnabled (N.Fix $ N.File "abc.disabled_not_really.disabled") @?= False
+          N.isEnabled (N.Fix $ N.Dir ".disabled"                        []) @?= False
+          N.isEnabled (N.Fix $ N.Dir "abc.disabled"                     []) @?= False
+          N.isEnabled (N.Fix $ N.Dir "abc.disabled_not_really.disabled" []) @?= False
       describe "prune" $ do
         it "works with one-level" $ do
           N.prune [ file1
@@ -92,14 +95,14 @@ spec =
             let xxs = coerce xs
              in null . N.prune $ xxs
   where
-    file1 = N.File "abc"
-    file2 = N.File "def.disabled"
-    file3 = N.File "ghi"
-    dir1 = N.Dir "mno"
-    dir2 = N.Dir "pqr.disabled"
-    dir3 = N.Dir "stu"
+    file1 = N.Fix $ N.File "abc"
+    file2 = N.Fix $ N.File "def.disabled"
+    file3 = N.Fix $ N.File "ghi"
+    dir1 = N.Fix . N.Dir "mno"
+    dir2 = N.Fix . N.Dir "pqr.disabled"
+    dir3 = N.Fix . N.Dir "stu"
 
 
 toplevelPathsShouldBe :: [N.Novella] -> [N.Novella] -> Assertion
-toplevelPathsShouldBe = (@?=) `on` (get N.name <$>)
+toplevelPathsShouldBe = (@?=) `on` (get (N.name . N.unFix) <$>)
 

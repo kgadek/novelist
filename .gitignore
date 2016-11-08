@@ -1,0 +1,16 @@
+## Build and test artifacts
+
+.stack-work/
+*.tix
+.hpc/
+hpc_report/
+tags
+*.prof
+*.hp
+*.eventlog
+
+## Temp files
+
+*.DS_Store
+*~
+.Trash-*

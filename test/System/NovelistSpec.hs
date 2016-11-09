@@ -1,8 +1,16 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module System.NovelistSpec (spec) where
 
 -- base
 import           Data.List (isSuffixOf)
 import           Data.Function (on)
+import           Control.Monad (liftM)
+import           Data.Proxy
+import           Data.Coerce (coerce)
 
 -- fclabels
 import           Data.Label
@@ -15,12 +23,55 @@ import           Test.HUnit ((@?=), Assertion)
 
 -- QuickCheck
 import           Test.QuickCheck (property, (==>))
+import qualified Test.QuickCheck as QC
 
 -- novelist
 import qualified System.Novelist as N
 
 
 {-# ANN module ("HLint: ignore Redundant do"::String) #-}
+
+
+-- |Use a biased coin, with ratio N:1.
+biasedCoin :: Int -> QC.Gen Bool
+biasedCoin k = (<k) <$> QC.choose (0,k)
+
+data Validity
+  = Enabled
+  | Disabled
+  | Mixed
+
+
+arbitraryNovellaName :: Validity -> QC.Gen String
+arbitraryNovellaName Enabled  = QC.arbitrary `QC.suchThat` (".disabled" `isNotSuffixOf`)
+arbitraryNovellaName Disabled = (++".disabled") <$> arbitraryNovellaName Enabled
+arbitraryNovellaName Mixed    = ifM (biasedCoin 5)
+                                  (arbitraryNovellaName Mixed)
+                                  (arbitraryNovellaName Disabled)
+
+arbitraryNovella :: Validity -> QC.Gen N.Novella
+arbitraryNovella v = QC.sized arb
+  where arb n
+          | n <= 0    = N.File <$> arbitraryNovellaName v
+          | otherwise = QC.scale (`div` 2) $
+              ifM (biasedCoin 6)
+                 (N.Dir <$> arbitraryNovellaName v <*> QC.listOf (arbitraryNovella v))
+                 (arb 0)
+
+newtype ANovella (v :: Validity) = ANovella { anovella :: N.Novella }
+  deriving (Show)
+
+instance QC.Arbitrary (ANovella Enabled) where
+  arbitrary = sqrtSize (ANovella <$> arbitraryNovella Enabled)
+instance QC.Arbitrary (ANovella Disabled) where
+  arbitrary = sqrtSize (ANovella <$> arbitraryNovella Disabled)
+
+-- |Resize QuickCheck's internal size to sqrt of itself.
+sqrtSize :: QC.Gen a -> QC.Gen a
+sqrtSize f = QC.sized $ \(n::Int) -> QC.resize (round . sqrt . fromIntegral $ n) f
+                          
+ifM :: Monad m => m Bool -> m a -> m a -> m a
+ifM mb p q = mb >>= (\b -> if b then p else q)
 
 spec :: Spec
 spec =
@@ -73,6 +124,14 @@ spec =
                     file1
                   , dir1 [file1]
                   ]
+        it "is an identify for all-good trees" $ property $
+          \(xs :: [ANovella Enabled]) ->
+            let xxs = coerce xs
+             in N.prune xxs == xxs
+        it "is a cleaner for all-bad trees" $ property $
+          \(xs :: [ANovella Disabled]) ->
+            let xxs = coerce xs
+             in null . N.prune $ xxs
   where
     file1 = N.File "abc"
     file2 = N.File "def.disabled"

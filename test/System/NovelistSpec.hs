@@ -9,7 +9,6 @@ module System.NovelistSpec (spec) where
 import           Data.List (isSuffixOf)
 import           Data.Function (on)
 import           Control.Monad (liftM)
-import           Data.Proxy
 import           Data.Coerce (coerce)
 
 -- fclabels
@@ -37,34 +36,46 @@ biasedCoin :: Int -> QC.Gen Bool
 biasedCoin k = (<k) <$> QC.choose (0,k)
 
 data Validity
-  = Enabled
-  | Disabled
+  = AllEnabled
+  | AllDisabled
   | Mixed
 
 
 arbitraryNovellaName :: Validity -> QC.Gen String
-arbitraryNovellaName Enabled  = QC.arbitrary `QC.suchThat` (".disabled" `isNotSuffixOf`)
-arbitraryNovellaName Disabled = (++".disabled") <$> arbitraryNovellaName Enabled
-arbitraryNovellaName Mixed    = ifM (biasedCoin 5)
-                                  (arbitraryNovellaName Mixed)
-                                  (arbitraryNovellaName Disabled)
+arbitraryNovellaName AllEnabled  = QC.arbitrary `QC.suchThat` (".disabled" `isNotSuffixOf`)
+arbitraryNovellaName AllDisabled = (++".disabled") <$> QC.arbitrary
+arbitraryNovellaName Mixed       = ifM (biasedCoin 4)
+                                     (arbitraryNovellaName AllEnabled)
+                                     (arbitraryNovellaName AllDisabled)
 
 arbitraryNovella :: Validity -> QC.Gen N.Novella
 arbitraryNovella v = QC.sized arb
   where arb n
           | n <= 0    = N.File <$> arbitraryNovellaName v
           | otherwise = QC.scale (`div` 2) $
-              ifM (biasedCoin 6)
+              ifM (biasedCoin 5)
                  (N.Dir <$> arbitraryNovellaName v <*> QC.listOf (arbitraryNovella v))
                  (arb 0)
 
-newtype ANovella (v :: Validity) = ANovella { anovella :: N.Novella }
+newtype ANovella (v :: Validity)
+  = ANovella N.Novella 
   deriving (Show)
 
-instance QC.Arbitrary (ANovella Enabled) where
-  arbitrary = sqrtSize (ANovella <$> arbitraryNovella Enabled)
-instance QC.Arbitrary (ANovella Disabled) where
-  arbitrary = sqrtSize (ANovella <$> arbitraryNovella Disabled)
+class ArbitraryNovellaValidity (a :: Validity) where
+    arbitraryNovellaValidity :: QC.Gen (ANovella a)
+
+instance (ArbitraryNovellaValidity a) => QC.Arbitrary (ANovella a) where
+    arbitrary = sqrtSize arbitraryNovellaValidity
+
+
+instance ArbitraryNovellaValidity AllEnabled where
+    arbitraryNovellaValidity = ANovella <$> arbitraryNovella AllEnabled
+
+instance ArbitraryNovellaValidity AllDisabled where
+    arbitraryNovellaValidity = ANovella <$> arbitraryNovella AllDisabled
+
+instance ArbitraryNovellaValidity Mixed where
+    arbitraryNovellaValidity = ANovella <$> arbitraryNovella Mixed
 
 -- |Resize QuickCheck's internal size to sqrt of itself.
 sqrtSize :: QC.Gen a -> QC.Gen a
@@ -125,11 +136,11 @@ spec =
                   , dir1 [file1]
                   ]
         it "is an identify for all-good trees" $ property $
-          \(xs :: [ANovella Enabled]) ->
+          \(xs :: [ANovella AllEnabled]) ->
             let xxs = coerce xs
              in N.prune xxs == xxs
         it "is a cleaner for all-bad trees" $ property $
-          \(xs :: [ANovella Disabled]) ->
+          \(xs :: [ANovella AllDisabled]) ->
             let xxs = coerce xs
              in null . N.prune $ xxs
   where

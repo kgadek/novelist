@@ -1,9 +1,15 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 module System.Novelist where
 
 -- base
 import           Data.List (isSuffixOf)
+import           GHC.Generics (Generic)
+
+-- deepseq
+import           Control.DeepSeq (NFData)
 
 -- fclabels
 import           Data.Label
@@ -16,7 +22,7 @@ data Novella
   | Dir { _name :: String
         , _contents :: [Novella]
         }
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic, NFData)
 mkLabel ''Novella
 
 isNameEnabled :: String -> Bool

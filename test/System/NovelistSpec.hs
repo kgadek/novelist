@@ -26,63 +26,11 @@ import qualified Test.QuickCheck as QC
 
 -- novelist
 import qualified System.Novelist as N
+import           System.Novelist.QuickCheck
 
 
 {-# ANN module ("HLint: ignore Redundant do"::String) #-}
 
-
--- |Use a biased coin, with ratio N:1.
-biasedCoin :: Int -> QC.Gen Bool
-biasedCoin k = (<k) <$> QC.choose (0,k)
-
-data Validity
-  = AllEnabled
-  | AllDisabled
-  | Mixed
-
-
-arbitraryNovellaName :: Validity -> QC.Gen String
-arbitraryNovellaName AllEnabled  = QC.arbitrary `QC.suchThat` (".disabled" `isNotSuffixOf`)
-arbitraryNovellaName AllDisabled = (++".disabled") <$> QC.arbitrary
-arbitraryNovellaName Mixed       = ifM (biasedCoin 4)
-                                     (arbitraryNovellaName AllEnabled)
-                                     (arbitraryNovellaName AllDisabled)
-
-arbitraryNovella :: Validity -> QC.Gen N.Novella
-arbitraryNovella v = QC.sized arb
-  where arb n
-          | n <= 0    = N.File <$> arbitraryNovellaName v
-          | otherwise = QC.scale (`div` 2) $
-              ifM (biasedCoin 5)
-                 (N.Dir <$> arbitraryNovellaName v <*> QC.listOf (arbitraryNovella v))
-                 (arb 0)
-
-newtype ANovella (v :: Validity)
-  = ANovella N.Novella 
-  deriving (Show)
-
-class ArbitraryNovellaValidity (a :: Validity) where
-    arbitraryNovellaValidity :: QC.Gen (ANovella a)
-
-instance (ArbitraryNovellaValidity a) => QC.Arbitrary (ANovella a) where
-    arbitrary = sqrtSize arbitraryNovellaValidity
-
-
-instance ArbitraryNovellaValidity AllEnabled where
-    arbitraryNovellaValidity = ANovella <$> arbitraryNovella AllEnabled
-
-instance ArbitraryNovellaValidity AllDisabled where
-    arbitraryNovellaValidity = ANovella <$> arbitraryNovella AllDisabled
-
-instance ArbitraryNovellaValidity Mixed where
-    arbitraryNovellaValidity = ANovella <$> arbitraryNovella Mixed
-
--- |Resize QuickCheck's internal size to sqrt of itself.
-sqrtSize :: QC.Gen a -> QC.Gen a
-sqrtSize f = QC.sized $ \(n::Int) -> QC.resize (round . sqrt . fromIntegral $ n) f
-                          
-ifM :: Monad m => m Bool -> m a -> m a -> m a
-ifM mb p q = mb >>= (\b -> if b then p else q)
 
 spec :: Spec
 spec =
@@ -151,10 +99,6 @@ spec =
     dir2 = N.Dir "pqr.disabled"
     dir3 = N.Dir "stu"
 
-
-
-isNotSuffixOf :: (Eq a) => [a] -> [a] -> Bool
-isNotSuffixOf needle haystack = not (needle `isSuffixOf` haystack)
 
 toplevelPathsShouldBe :: [N.Novella] -> [N.Novella] -> Assertion
 toplevelPathsShouldBe = (@?=) `on` (get N.name <$>)

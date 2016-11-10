@@ -19,11 +19,15 @@ description:
 library
   hs-source-dirs:      src
   exposed-modules:     System.Novelist
+  other-modules:       System.Novelist.QuickCheck
   build-depends:       base >= 4.7 && < 5
                      , directory
                      , fclabels
                      , mtl
+                     , deepseq
+                     , QuickCheck
   default-language:    Haskell2010
+  ghc-options:         -O2
 
 executable novelist-exe
   hs-source-dirs:      app
@@ -38,27 +42,32 @@ test-suite novelist-test
   hs-source-dirs:      test src
   main-is:             Spec.hs
   build-depends:       base
-                     , novelist
                      , hspec
                      , HUnit
                      , QuickCheck
                      , fclabels
+                     , deepseq
                      , mtl
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
   other-modules:       System.NovelistSpec
                     -- src
                      , System.Novelist
+                     , System.Novelist.QuickCheck
 
 benchmark novelist-criterion
   type:                exitcode-stdio-1.0
-  hs-source-dirs:      bench
+  hs-source-dirs:      bench src
   main-is:             Bench.hs
   build-depends:       base
-                     , novelist
                      , criterion
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+                     , QuickCheck
+                     , fclabels
+                     , deepseq
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -O2
   default-language:    Haskell2010
+  other-modules:       System.Novelist
+                     , System.Novelist.QuickCheck
 
 source-repository head
   type:     git

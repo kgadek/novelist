@@ -1,53 +1,17 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveAnyClass #-}
+module System.Novelist (
+    prune
+  , convertFtoNormal
+) where
 
-module System.Novelist where
-
--- base
-import           Data.List (isSuffixOf)
-import           GHC.Generics (Generic)
-import           Prelude hiding ((.))
-import           Control.Category ((.))
-
--- deepseq
-import           Control.DeepSeq (NFData)
-
--- fclabels
-import           Data.Label
-import qualified Data.Label.Partial as Partial
+-- novelist
+import           System.Novelist.NovelistF (prune)
+import qualified System.Novelist.NovelistF   as NovelistF
+import qualified System.Novelist.QuickCheckF as NovelistFQC
+import qualified System.Novelist.Novelist   as Novelist
+import qualified System.Novelist.QuickCheck as NovelistQC
 
 
-data NovellaF a 
-  = File { _name :: String
-         }
-  | Dir { _name :: String
-        , _contents :: [a]
-        }
-  deriving (Show, Eq, Functor, Generic, NFData)
-mkLabel ''NovellaF
-
-newtype Fix f
-  = Fix { _unFix :: f (Fix f) }
-  deriving (Generic)
-mkLabel ''Fix
-
-deriving instance Eq (Fix NovellaF)
-deriving instance Show (Fix NovellaF)
-deriving instance NFData (Fix NovellaF)
-
-type Novella = Fix NovellaF
-
-isNameEnabled :: String -> Bool
-isNameEnabled = not . (".disabled" `isSuffixOf`)
-
-isEnabled :: Novella -> Bool
-isEnabled = isNameEnabled . get (name . unFix)
-
-prune :: [Novella] -> [Novella]
-prune = fmap (Partial.modify' (contents . unFix) prune) . filter isEnabled
+convertFtoNormal :: NovelistF.NovellaF Novelist.Novella -> Novelist.Novella
+convertFtoNormal (NovelistF.File n) = Novelist.File n
+convertFtoNormal (NovelistF.Dir n c) = Novelist.Dir n c
 

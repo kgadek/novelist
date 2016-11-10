@@ -98,9 +98,13 @@ def command_interactive(cmd)
     PTY.spawn( cmd ) do |stdin, stdout, pid|
       begin
         puts "* * STDOUT & STDERR".starfill.blue
-        stdin.each { |line| 
+        stdin.each { |buf|
           stdout_empty = false
-          puts "  * ".blue + line
+          buf.each_line {|line|
+            # Hspec's QuickCheck outputs shell escape codes that break blue stars (even when said not to do so).
+            # This hack circumvents the quirkology
+            puts "  * ".blue + line.rstrip + "\r  * ".blue 
+          }
         }
       rescue Errno::EIO
       end

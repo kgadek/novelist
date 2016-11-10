@@ -28,7 +28,7 @@
 ################################################################################
 
 $tests_compiled = false
-$tests_compiled_coverage = false
+$tests_compiled_coverage = false # add -fhpc to test-suite's ghc-options
 
 ################################################################################
 # THE ACTUAL DSL

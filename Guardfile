@@ -76,8 +76,8 @@ group :haskell, halt_on_fail: true do
     end
 
     watch(%r{^bench/.*\.hs$}) do |m|
-      section "bench" do
-        command_interactive "stack build --bench --benchmark-arguments '-L 15 --output bench.html'"
+      section "bench", :noexception => true do
+        command_interactive "stack build --bench --benchmark-arguments '-L 5 --output bench.html'"
       end
     end
 

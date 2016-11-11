@@ -40,16 +40,16 @@ group :haskell, halt_on_fail: true do
 
   guard :shell do
 
-    watch(%r{^(src|test|bench)/.*\.hs$}) do |m|
+    watch(%r{^(src|test|bench|qc-gen)/.*\.hs$}) do |m|
       lastbuildguard(m[0]) do
         if $tests_compiled
           section "tests (c)" do
-            command_interactive "stack test"
+            command_interactive "stack test --ghc-options '-fno-max-relevant-binds'"
             coverage("novelist-test")
           end
         else
           section "tests (i)" do
-            command_interactive "stack exec -- runhaskell -isrc -itest test/Spec.hs"
+            command_interactive "stack exec -- runhaskell -isrc -itest -iqc-gen test/Spec.hs"
           end
         end
       end

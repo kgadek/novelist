@@ -3,7 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module System.Novelist.QuickCheckF (
+module System.Novelist.Arbitrary.QuickCheck (
     ANovella(..)
   , Validity(..)
 ) where
@@ -23,7 +23,7 @@ import           Test.QuickCheck (property, (==>))
 import qualified Test.QuickCheck as QC
 
 -- novelist
-import qualified System.Novelist.NovelistF as N
+import qualified System.Novelist.Novelist as N
 
 
 data Validity
@@ -44,7 +44,7 @@ arbitraryNovellaName Mixed       = ifM (biasedCoin 4)
                                      (arbitraryNovellaName AllDisabled)
 
 arbitraryNovella :: Validity -> QC.Gen N.Novella
-arbitraryNovella v = N.Fix <$> QC.sized arb
+arbitraryNovella v = QC.sized arb
   where arb n
           | n <= 0    = N.File <$> arbitraryNovellaName v
           | otherwise = QC.scale (`div` 2) $

@@ -2,7 +2,11 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 
-module System.Novelist.Novelist where
+module System.Novelist.Novelist (
+    Novella(..), file, dir, name, contents
+  , isNameEnabled, isEnabled
+  , prune
+) where
 
 -- base
 import           Data.List (isSuffixOf)
@@ -24,6 +28,13 @@ data Novella
         }
   deriving (Show, Eq, Generic, NFData)
 mkLabel ''Novella
+
+
+file :: String -> Novella
+file = File
+
+dir :: String -> [Novella] -> Novella
+dir = Dir 
 
 isNameEnabled :: String -> Bool
 isNameEnabled = not . (".disabled" `isSuffixOf`)

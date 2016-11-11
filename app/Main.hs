@@ -1,9 +1,8 @@
 module Main where
 
 -- novelist
-import           System.Novelist ()
+import           System.Novelist.NovelistF
 
 
 main :: IO ()
-main = do
-    print 123
+main = print 123

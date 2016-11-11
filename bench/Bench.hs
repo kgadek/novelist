@@ -7,6 +7,9 @@ module Main (
 -- deepseq
 import qualified Control.DeepSeq as NF
 
+-- recursion-schemes
+import           Data.Functor.Foldable
+
 -- criterion
 import           Criterion      (Benchmark, bench, nf)
 import           Criterion.Main (bgroup, defaultMain)
@@ -19,9 +22,11 @@ import qualified Test.QuickCheck.Random as QC
 -- novelist
 import           System.Novelist (convertFtoNormal)
 import qualified System.Novelist.NovelistF   as NovelistF
-import qualified System.Novelist.QuickCheckF as NovelistFQC
 import qualified System.Novelist.Novelist   as Novelist
-import qualified System.Novelist.QuickCheck as NovelistQC
+
+--
+import qualified System.Novelist.Arbitrary.QuickCheck as NovelistQC
+import qualified System.Novelist.Arbitrary.QuickCheckF as NovelistFQC
 
 
 genPruneBench :: Int -> Int -> [NovelistF.Novella]
@@ -65,8 +70,8 @@ main = defaultMain [
     dataF10000  = NF.force $ genPruneBench seed 10000
     dataF100000 = NF.force $ genPruneBench seed 100000
     data10, data100, data1000, data10000, data100000 :: [Novelist.Novella]
-    data10     = NF.force $ (NovelistF.cata convertFtoNormal <$>) dataF10
-    data100    = NF.force $ (NovelistF.cata convertFtoNormal <$>) dataF100
-    data1000   = NF.force $ (NovelistF.cata convertFtoNormal <$>) dataF1000
-    data10000  = NF.force $ (NovelistF.cata convertFtoNormal <$>) dataF10000
-    data100000 = NF.force $ (NovelistF.cata convertFtoNormal <$>) dataF100000
+    data10     = NF.force $ (cata convertFtoNormal <$>) dataF10
+    data100    = NF.force $ (cata convertFtoNormal <$>) dataF100
+    data1000   = NF.force $ (cata convertFtoNormal <$>) dataF1000
+    data10000  = NF.force $ (cata convertFtoNormal <$>) dataF10000
+    data100000 = NF.force $ (cata convertFtoNormal <$>) dataF100000

@@ -27,6 +27,7 @@ library
                      , transformers
                      , deepseq
                      , recursion-schemes
+                     , free
   default-language:    Haskell2010
   ghc-options:         -O2
 
@@ -49,6 +50,7 @@ test-suite novelist-test
                      , HUnit
                      , QuickCheck
                      , fclabels
+                     , free
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
   other-modules:       Spec
@@ -67,6 +69,7 @@ benchmark novelist-criterion
                      , fclabels
                      , deepseq
                      , recursion-schemes
+                     , free
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N -O2
   default-language:    Haskell2010
   other-modules:       System.Novelist.Arbitrary

@@ -11,19 +11,23 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module System.Novelist.NovelistF (
-  -- data
-    Novella, NovellaF(..)
-  , Fix2(..)
-    -- smart constructors
-  , file, dir
-    -- lens
-  , name, contents
-  , unFix2
-  -- functions
-  , isNameEnabled, isEnabled
-  , prune
-) where
+
+module System.Novelist.NovelistF where
+{-
+ -module System.Novelist.NovelistF (
+ -  -- data
+ -    Novella, NovellaF(..)
+ -  , Fix2(..)
+ -    -- smart constructors
+ -  , file, dir
+ -    -- lens
+ -  , name, contents
+ -  , unFix2
+ -  -- functions
+ -  , isNameEnabled, isEnabled
+ -  , prune
+ -) where
+ -}
 
 -- base
 import           Data.List (isSuffixOf)
@@ -40,6 +44,10 @@ import           Data.Label
 
 -- recursion-schemes
 import           Data.Functor.Foldable
+
+-- free
+import           Control.Monad.Free (liftF, Free(Pure,Free))
+import qualified Control.Monad.Trans.Free as TF
 
 
 
@@ -71,6 +79,9 @@ mkLabel ''Fix2
 instance Show1 (f g) => Show (Fix2 f g) where
   showsPrec d (Fix2 a) = showParen (d >= 11) $ showString "Fix2 " . showsPrec1 11 a
 
+-- TODO: change to
+--   instance (Eq1 (f g), Sortable (f g), Eq g) => Eq (Fix2 f g)
+-- to make this work regardless of the exact ordering of the elements
 instance Eq1 (f g) => Eq (Fix2 f g) where
   (Fix2 a) == (Fix2 b) = liftEq (==) a b
 
@@ -111,3 +122,47 @@ prune = cataWithSentry alg
     alg (File n)  = Fix2 . File $ n
     alg (Dir n c) = Fix2 . Dir n $ filter isEnabled c
 
+
+data FSopsF next
+  = ListDir { _dirName :: String
+            , _next :: next
+            }
+  deriving (Functor)
+mkLabel ''FSopsF
+
+
+type instance Base (Free f r) = TF.FreeF f r
+
+instance Functor f => Recursive (Free f r) where
+  project (Free a) = TF.Free a
+  project (Pure b) = TF.Pure b
+
+
+listDir :: String -> Free FSopsF ()
+listDir n = liftF $ ListDir n ()
+
+test :: Free FSopsF ()
+test = do
+  listDir "d1"
+  listDir "d2"
+  listDir "d3"
+
+test2 :: Free FSopsF ()
+test2 = return ()
+
+pp :: Free FSopsF r -> IO r
+pp = cata eval
+  where
+    eval :: TF.FreeF FSopsF r (IO r) -> IO r
+    eval (TF.Free x@ListDir{}) = do
+      putStr "LISTDIR: "
+      putStrLn $ get dirName x
+      get next x
+    eval (TF.Pure r) = return r
+
+pp2 :: Free FSopsF r -> String
+pp2 = cata eval
+  where
+    eval :: TF.FreeF FSopsF r String -> String
+    eval (TF.Free x@ListDir{}) = "LISTDIR: " ++ get dirName x ++ "\n" ++ get next x
+    eval (TF.Pure _) = ""

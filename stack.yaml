@@ -37,10 +37,13 @@ resolver: lts-7.8
 # will not be run. This is useful for tweaking upstream packages.
 packages:
 - '.'
+- location:
+    git: https://github.com/ekmett/recursion-schemes.git
+    commit: cf30558c3da375868a54600c6f796d2c7cd60565
+  extra-dep: true
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
-extra-deps:
-- recursion-schemes-5
+extra-deps: []
 
 # Override default flag values for local packages and extra-deps
 flags: {}

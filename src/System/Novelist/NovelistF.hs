@@ -131,13 +131,6 @@ data FSopsF next
 mkLabel ''FSopsF
 
 
-type instance Base (Free f r) = TF.FreeF f r
-
-instance Functor f => Recursive (Free f r) where
-  project (Free a) = TF.Free a
-  project (Pure b) = TF.Pure b
-
-
 listDir :: String -> Free FSopsF ()
 listDir n = liftF $ ListDir n ()
 

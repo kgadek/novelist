@@ -1,6 +1,9 @@
 # HPack artifact
 novelist.cabal
 
+# HLint artifact
+report.html
+
 ## Build and test artifacts
 
 .stack-work/
@@ -18,3 +21,4 @@ bench.html
 *.DS_Store
 *~
 .Trash-*
+

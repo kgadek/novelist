@@ -90,7 +90,7 @@ deriving instance (NFData (f g (Fix2 f g))) => NFData (Fix2 f g)
 
 type instance Base (Fix2 f g) = f g
 instance (Functor (f g)) => Recursive (Fix2 f g) where
-  project (Fix2 a) = a
+  project = _unFix2
 instance (Functor (f g)) => Corecursive (Fix2 f g) where
   embed = Fix2
 

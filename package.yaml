@@ -11,11 +11,10 @@ github: kgadek/novelist
 
 
 dependencies:
-  - base
+  - base >= 4.7 && < 5
 
 library:
   source-dirs: src
-  ghc-options: -O2
   exposed-modules:
     - System.Novelist
     - System.Novelist.NovelistF
@@ -70,7 +69,6 @@ benchmarks:
       - -threaded
       - -rtsopts
       - -with-rtsopts=-N
-      - -O2
     dependencies:
       - novelist
       - criterion

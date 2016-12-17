@@ -30,6 +30,7 @@ import qualified Test.QuickCheck as QC
 {-import           System.Novelist (convertFtoNormal)-}
 import qualified System.Novelist.Novelist   as Novelist
 import qualified System.Novelist.NovelistF   as NovelistF
+import qualified System.Novelist.Internal.Fix2 as NovelistF
 
 --
 import qualified System.Novelist.Arbitrary.QuickCheckF as NovelistFQC

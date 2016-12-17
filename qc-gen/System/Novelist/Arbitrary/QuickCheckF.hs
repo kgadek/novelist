@@ -24,6 +24,7 @@ import qualified Test.QuickCheck as QC
 
 -- novelist
 import qualified System.Novelist.NovelistF as N
+import qualified System.Novelist.Internal.Fix2 as N
 
 
 data Validity

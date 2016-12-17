@@ -1,16 +1,8 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE PolyKinds #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE UndecidableInstances #-}
-
+{-# LANGUAGE KindSignatures #-}
 
 module System.Novelist.NovelistF where
 {-
@@ -49,6 +41,9 @@ import           Data.Functor.Foldable
 import           Control.Monad.Free (liftF, Free(Pure,Free))
 import qualified Control.Monad.Trans.Free as TF
 
+--
+import           System.Novelist.Internal.Fix2 (Fix2(Fix2), unFix2)
+
 
 
 data NovellaF g a 
@@ -70,32 +65,6 @@ instance Eq1 f => Eq1 (NovellaF f) where
   liftEq _ _ _ = False
 
 
-
-newtype Fix2 (f :: (* -> *) -> * -> *) (g :: (* -> *)) 
-  = Fix2 { _unFix2 :: f g (Fix2 f g) }
-  deriving (Generic)
-mkLabel ''Fix2
-
-instance Show1 (f g) => Show (Fix2 f g) where
-  showsPrec d (Fix2 a) = showParen (d >= 11) $ showString "Fix2 " . showsPrec1 11 a
-
--- TODO: change to
---   instance (Eq1 (f g), Sortable (f g), Eq g) => Eq (Fix2 f g)
--- to make this work regardless of the exact ordering of the elements
-instance Eq1 (f g) => Eq (Fix2 f g) where
-  (Fix2 a) == (Fix2 b) = liftEq (==) a b
-
-deriving instance (NFData (f g (Fix2 f g))) => NFData (Fix2 f g)
-
-
-type instance Base (Fix2 f g) = f g
-instance (Functor (f g)) => Recursive (Fix2 f g) where
-  project = _unFix2
-instance (Functor (f g)) => Corecursive (Fix2 f g) where
-  embed = Fix2
-
-
-
 type Novella = Fix2 NovellaF []
 
 file :: String -> Novella
@@ -111,7 +80,10 @@ isEnabled :: Fix2 NovellaF f -> Bool
 isEnabled = isNameEnabled . get (name . unFix2)
 
 cataWithSentry :: (NovellaF [] Novella -> Novella) -> [Novella] -> [Novella]
-cataWithSentry = cataWith (Fix2 . Dir "sentry") (_contents . _unFix2)
+cataWithSentry = cataWith addSentry dropSentry
+  where
+    addSentry  = Fix2 . Dir "sentry"
+    dropSentry = _contents . get unFix2
 
 cataWith :: Recursive t => (pt -> t) -> (pa -> a) -> (Base t pa -> pa) -> pt -> a
 cataWith pre post alg = post . cata alg . pre

@@ -26,9 +26,6 @@ import           Test.HUnit ((@?=), Assertion)
 import           Test.QuickCheck (property, (==>))
 import qualified Test.QuickCheck as QC
 
--- recursion-schemes
-import           Data.Functor.Foldable
-
 -- novelist
 {-import           System.Novelist (convertFtoNormal)-}
 import qualified System.Novelist.Novelist   as Novelist
@@ -37,7 +34,7 @@ import qualified System.Novelist.NovelistF   as NovelistF
 --
 import qualified System.Novelist.Arbitrary.QuickCheckF as NovelistFQC
 import qualified System.Novelist.Arbitrary.QuickCheck as NovelistQC
-import           System.Novelist (convertFtoNormal)
+import           System.Novelist (novellasF)
 
 
 {-# ANN module ("HLint: ignore Redundant do"::String) #-}
@@ -164,7 +161,7 @@ spec = do
     describe "System.Novelist._" $ do
       it "implementations are equal" $ property $
         \(xs :: [NovelistFQC.ANovella NovelistFQC.Mixed]) ->
-          let ys = (cata convertFtoNormal . NovelistFQC.unANovella) <$> xs
+          let ys = (get (iso novellasF) . NovelistFQC.unANovella) <$> xs
               xxs = topLevelNames . NovelistF.prune . coerce $ xs
               yys = topLevelNames . Novelist.prune . coerce $ ys
            in xxs == yys

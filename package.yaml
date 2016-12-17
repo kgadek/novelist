@@ -15,10 +15,6 @@ dependencies:
 
 library:
   source-dirs: src
-  exposed-modules:
-    - System.Novelist
-    - System.Novelist.NovelistF
-    - System.Novelist.Novelist
   dependencies:
     - directory
     - fclabels

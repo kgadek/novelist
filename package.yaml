@@ -1,0 +1,78 @@
+name: novelist
+version: '0.0.0.1'
+synopsis: Initial project template from stack
+description: Some description here.
+category: Other
+author: Konrad Gądek
+maintainer: kgadek@gmail.com
+copyright: 2016, Konrad Gądek
+license: BSD3
+github: kgadek/novelist
+
+
+dependencies:
+  - base
+
+library:
+  source-dirs: src
+  ghc-options: -O2
+  exposed-modules:
+    - System.Novelist
+  dependencies:
+    - directory
+    - fclabels
+    - mtl
+    - transformers
+    - deepseq
+    - recursion-schemes
+    - free
+
+executables:
+  novelist-exe:
+    main: Main.hs
+    source-dirs: app
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - novelist
+
+tests:
+  novelist-test:
+    main: Main.hs
+    source-dirs:
+      - test
+      - qc-gen
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - novelist
+      - hspec
+      - hspec-core
+      - HUnit
+      - QuickCheck
+      - fclabels
+      - free
+
+benchmarks:
+  novelist-criterion:
+    main: Bench.hs
+    source-dirs:
+      - bench
+      - qc-gen
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -O2
+    dependencies:
+      - novelist
+      - criterion
+      - QuickCheck
+      - fclabels
+      - deepseq
+      - recursion-schemes
+      - free

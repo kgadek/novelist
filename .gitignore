@@ -1,3 +1,6 @@
+# HPack artifact
+novelist.cabal
+
 ## Build and test artifacts
 
 .stack-work/

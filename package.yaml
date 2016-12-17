@@ -18,6 +18,8 @@ library:
   ghc-options: -O2
   exposed-modules:
     - System.Novelist
+    - System.Novelist.NovelistF
+    - System.Novelist.Novelist
   dependencies:
     - directory
     - fclabels
@@ -56,6 +58,7 @@ tests:
       - QuickCheck
       - fclabels
       - free
+      - recursion-schemes
 
 benchmarks:
   novelist-criterion:

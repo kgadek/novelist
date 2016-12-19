@@ -3,6 +3,9 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE TypeOperators #-}
 
 module System.Novelist.NovelistF where
 {-
@@ -27,12 +30,18 @@ import           GHC.Generics (Generic)
 import           Prelude hiding ((.))
 import           Control.Category ((.))
 import           Data.Functor.Classes
+import           Control.Arrow (Kleisli(Kleisli, runKleisli))
+import           Data.Maybe (listToMaybe, mapMaybe)
 
 -- deepseq
 import           Control.DeepSeq (NFData)
 
 -- fclabels
 import           Data.Label
+import qualified Data.Label.Base as FCBase
+import qualified Data.Label.Poly as Poly
+import qualified Data.Label.Partial as Partial
+import           Data.Label.Partial ((:~>))
 
 -- recursion-schemes
 import           Data.Functor.Foldable
@@ -79,56 +88,77 @@ isNameEnabled = not . (".disabled" `isSuffixOf`)
 isEnabled :: Fix2 NovellaF f -> Bool
 isEnabled = isNameEnabled . get (name . unFix2)
 
-cataWithSentry :: (NovellaF [] Novella -> Novella) -> [Novella] -> [Novella]
-cataWithSentry = cataWith addSentry dropSentry
-  where
-    addSentry  = Fix2 . Dir "sentry"
-    dropSentry = _contents . get unFix2
-
-cataWith :: Recursive t => (pt -> t) -> (pa -> a) -> (Base t pa -> pa) -> pt -> a
-cataWith pre post alg = post . cata alg . pre
-
 prune :: [Novella] -> [Novella]
-prune = cataWithSentry alg
+prune = fmap (cata alg) . filter isEnabled
   where
     alg :: NovellaF [] Novella -> Novella
     alg (File n)  = Fix2 . File $ n
     alg (Dir n c) = Fix2 . Dir n $ filter isEnabled c
 
 
+data DirectoryListing
+  = DirectoryListing {
+      _dirs :: [String]
+    , _files :: [String]
+    }
+  deriving (Show)
+mkLabel ''DirectoryListing
+
+data MockDirectoryTreeF f r
+  = MockDirectoryTreeF {
+      _mName :: String -- drop, shall be external
+    , _mDirs :: f r
+    , _mFiles :: [String]
+    }
+  deriving (Show, Functor)
+  --deriving (Show, Eq, Functor, Generic, NFData)
+mkLabel ''MockDirectoryTreeF
+
+type MockDirectoryTree = Fix2 MockDirectoryTreeF []
+
+mTree1 :: MockDirectoryTree
+mTree1 = rootDir
+  where
+    rootDir = Fix2 $ MockDirectoryTreeF "dir"  [subDir1] ["file1", "file2"]
+    subDir1 = Fix2 $ MockDirectoryTreeF "dirA" []        ["fileA1", "fileA2"]
+
 data FSopsF next
-  = ListDir { _dirName :: String
-            , _next :: next
-            }
+  = ListDir {
+      _dirName :: String
+    , _next :: DirectoryListing -> next
+    }
   deriving (Functor)
 mkLabel ''FSopsF
 
 
-listDir :: String -> Free FSopsF ()
-listDir n = liftF $ ListDir n ()
+listDir :: String -> Free FSopsF DirectoryListing
+listDir n = liftF $ ListDir n id
 
-test :: Free FSopsF ()
+test :: Free FSopsF DirectoryListing
 test = do
-  listDir "d1"
-  listDir "d2"
-  listDir "d3"
+  x <- listDir "d1"
+  y <- listDir "d2"
+  z <- listDir "d3"
+  return x
 
 test2 :: Free FSopsF ()
 test2 = return ()
 
-pp :: Free FSopsF r -> IO r
-pp = cata eval
-  where
-    eval :: TF.FreeF FSopsF r (IO r) -> IO r
-    eval (TF.Free x@ListDir{}) = do
-      putStr "LISTDIR: "
-      putStrLn $ get dirName x
-      get next x
-    eval (TF.Pure r) = return r
+rootDirName :: MockDirectoryTree :-> String
+rootDirName = mName . unFix2
 
-pp2 :: Free FSopsF r -> String
-pp2 = cata eval
+flattenMockDir :: MockDirectoryTree -> MockDirectoryTreeF [] String
+flattenMockDir (Fix2 m) = Poly.modify mDirs (fmap (get rootDirName), m)
+
+pp2 :: MockDirectoryTree -> Free FSopsF r -> String
+pp2 mockTree = cata eval
   where
     eval :: TF.FreeF FSopsF r String -> String
-    eval (TF.Free x@ListDir{}) = "LISTDIR: " ++ get dirName x ++ "\n" ++ get next x
+    eval (TF.Free x@ListDir{}) = msg ++ cont
+      where
+        msg = "LISTDIR: " ++ get dirName x ++ "\n  RESULT: " ++ show theDir ++ "\n"
+        theDir = DirectoryListing (get (mName . unFix2) <$> get (mDirs . unFix2) mockTree)
+                                  (get (mFiles . unFix2) mockTree)
+        cont = (get next x) theDir
+
     eval (TF.Pure _) = ""

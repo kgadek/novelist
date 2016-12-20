@@ -15,8 +15,11 @@ import           Data.Function (on)
 import           Control.Monad (liftM)
 import           Data.Coerce (coerce)
 
--- fclabels
-import           Data.Label
+-- microlens
+import           Lens.Micro
+
+-- microlens-th
+import           Lens.Micro.TH
 
 -- QuickCheck
 import           Test.QuickCheck (property, (==>))

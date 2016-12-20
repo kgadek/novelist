@@ -16,11 +16,12 @@ import qualified Test.QuickCheck        as QC
 import qualified Test.QuickCheck.Gen    as QC
 import qualified Test.QuickCheck.Random as QC
 
--- fclabels
-import           Data.Label
+-- microlens
+import           Lens.Micro
+import           Lens.Micro.Extras
 
 -- novelist
-import           System.Novelist (novellasF)
+import           System.Novelist (novellasFtoN)
 import qualified System.Novelist.NovelistF   as NovelistF
 import qualified System.Novelist.Novelist   as Novelist
 
@@ -70,8 +71,8 @@ main = defaultMain [
     dataF10000  = NF.force $ genPruneBench seed 10000
     dataF100000 = NF.force $ genPruneBench seed 100000
     data10, data100, data1000, data10000, data100000 :: [Novelist.Novella]
-    data10     = NF.force $ (get (iso novellasF) <$>) dataF10
-    data100    = NF.force $ (get (iso novellasF) <$>) dataF100
-    data1000   = NF.force $ (get (iso novellasF) <$>) dataF1000
-    data10000  = NF.force $ (get (iso novellasF) <$>) dataF10000
-    data100000 = NF.force $ (get (iso novellasF) <$>) dataF100000
+    data10     = NF.force $ (novellasFtoN <$>) dataF10
+    data100    = NF.force $ (novellasFtoN <$>) dataF100
+    data1000   = NF.force $ (novellasFtoN <$>) dataF1000
+    data10000  = NF.force $ (novellasFtoN <$>) dataF10000
+    data100000 = NF.force $ (novellasFtoN <$>) dataF100000

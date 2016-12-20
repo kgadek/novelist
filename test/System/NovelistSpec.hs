@@ -13,8 +13,12 @@ import           Data.Function (on)
 import           Data.List (isSuffixOf)
 import           Data.Proxy
 
--- fclabels
-import           Data.Label
+-- microlens
+import           Lens.Micro
+import           Lens.Micro.Extras
+
+-- microlens-th
+import           Lens.Micro.TH
 
 -- Hspec
 import           Test.Hspec (Spec, describe, it)
@@ -35,7 +39,7 @@ import qualified System.Novelist.Internal.Fix2 as NovelistF
 --
 import qualified System.Novelist.Arbitrary.QuickCheckF as NovelistFQC
 import qualified System.Novelist.Arbitrary.QuickCheck as NovelistQC
-import           System.Novelist (novellasF)
+import           System.Novelist (novellasFtoN)
 
 
 {-# ANN module ("HLint: ignore Redundant do"::String) #-}
@@ -162,7 +166,9 @@ spec = do
     describe "System.Novelist._" $ do
       it "implementations are equal" $ property $
         \(xs :: [NovelistFQC.ANovella NovelistFQC.Mixed]) ->
-          let ys = (get (iso novellasF) . NovelistFQC.unANovella) <$> xs
+          let ys :: [Novelist.Novella]
+              ys = (novellasFtoN . NovelistFQC.unANovella) <$> xs
+              xxs, yys :: [String]
               xxs = topLevelNames . NovelistF.prune . coerce $ xs
               yys = topLevelNames . Novelist.prune . coerce $ ys
            in xxs == yys
@@ -184,14 +190,14 @@ class TopLevelNames a where
     topLevelNames :: [a] -> [String]
 
 instance TopLevelNames NovelistF.Novella where
-    topLevelNames = (get (NovelistF.name . NovelistF.unFix2) <$>)
+    topLevelNames = (view (NovelistF.unFix2 . NovelistF.name) <$>)
 
 instance TopLevelNames Novelist.Novella where
-    topLevelNames = (get Novelist.name <$>)
+    topLevelNames = (view Novelist.name <$>)
 
 toplevelPathsFShouldBe :: [NovelistF.Novella] -> [NovelistF.Novella] -> Assertion
-toplevelPathsFShouldBe = (@?=) `on` (get (NovelistF.name . NovelistF.unFix2) <$>)
+toplevelPathsFShouldBe = (@?=) `on` (view (NovelistF.unFix2 . NovelistF.name) <$>)
 
 
 toplevelPathsShouldBe :: [Novelist.Novella] -> [Novelist.Novella] -> Assertion
-toplevelPathsShouldBe = (@?=) `on` (get Novelist.name <$>)
+toplevelPathsShouldBe = (@?=) `on` (view Novelist.name <$>)

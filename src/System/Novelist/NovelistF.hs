@@ -37,11 +37,18 @@ import           Data.Maybe (listToMaybe, mapMaybe)
 import           Control.DeepSeq (NFData)
 
 -- fclabels
-import           Data.Label
-import qualified Data.Label.Base as FCBase
-import qualified Data.Label.Poly as Poly
-import qualified Data.Label.Partial as Partial
-import           Data.Label.Partial ((:~>))
+{-import           Data.Label-}
+{-import qualified Data.Label.Base as FCBase-}
+{-import qualified Data.Label.Poly as Poly-}
+{-import qualified Data.Label.Partial as Partial-}
+{-import           Data.Label.Partial ((:~>))-}
+
+-- microlens
+import           Lens.Micro
+import           Lens.Micro.Extras
+
+-- microlens-th
+import           Lens.Micro.TH
 
 -- recursion-schemes
 import           Data.Functor.Foldable
@@ -62,7 +69,7 @@ data NovellaF g a
         , _contents :: g a
         }
   deriving (Show, Eq, Functor, Generic, NFData)
-mkLabel ''NovellaF
+makeLenses ''NovellaF
 
 instance Show1 f => Show1 (NovellaF f) where
   liftShowsPrec _  _  d (File n)  = showsUnaryWith showsPrec "File" d n
@@ -86,7 +93,7 @@ isNameEnabled :: String -> Bool
 isNameEnabled = not . (".disabled" `isSuffixOf`)
 
 isEnabled :: Fix2 NovellaF f -> Bool
-isEnabled = isNameEnabled . get (name . unFix2)
+isEnabled = isNameEnabled . view (unFix2 . name)
 
 prune :: [Novella] -> [Novella]
 prune = fmap (cata alg) . filter isEnabled
@@ -102,7 +109,7 @@ data DirectoryListing
     , _files :: [String]
     }
   deriving (Show)
-mkLabel ''DirectoryListing
+makeLenses ''DirectoryListing
 
 data MockDirectoryTreeF f r
   = MockDirectoryTreeF {
@@ -112,7 +119,7 @@ data MockDirectoryTreeF f r
     }
   deriving (Show, Functor)
   --deriving (Show, Eq, Functor, Generic, NFData)
-mkLabel ''MockDirectoryTreeF
+makeLenses ''MockDirectoryTreeF
 
 type MockDirectoryTree = Fix2 MockDirectoryTreeF []
 
@@ -128,7 +135,7 @@ data FSopsF next
     , _next :: DirectoryListing -> next
     }
   deriving (Functor)
-mkLabel ''FSopsF
+makeLenses ''FSopsF
 
 
 listDir :: String -> Free FSopsF DirectoryListing
@@ -144,11 +151,11 @@ test = do
 test2 :: Free FSopsF ()
 test2 = return ()
 
-rootDirName :: MockDirectoryTree :-> String
-rootDirName = mName . unFix2
+rootDirName :: Lens' MockDirectoryTree String
+rootDirName = unFix2 . mName
 
 flattenMockDir :: MockDirectoryTree -> MockDirectoryTreeF [] String
-flattenMockDir (Fix2 m) = Poly.modify mDirs (fmap (get rootDirName), m)
+flattenMockDir (Fix2 m) = over mDirs (fmap (view rootDirName)) m
 
 pp2 :: MockDirectoryTree -> Free FSopsF r -> String
 pp2 mockTree = cata eval
@@ -156,9 +163,9 @@ pp2 mockTree = cata eval
     eval :: TF.FreeF FSopsF r String -> String
     eval (TF.Free x@ListDir{}) = msg ++ cont
       where
-        msg = "LISTDIR: " ++ get dirName x ++ "\n  RESULT: " ++ show theDir ++ "\n"
-        theDir = DirectoryListing (get (mName . unFix2) <$> get (mDirs . unFix2) mockTree)
-                                  (get (mFiles . unFix2) mockTree)
-        cont = (get next x) theDir
+        msg = "LISTDIR: " ++ view dirName x ++ "\n  RESULT: " ++ show theDir ++ "\n"
+        theDir = DirectoryListing (view (unFix2 . mName) <$> view (unFix2 . mDirs) mockTree)
+                                  (view (unFix2 . mFiles) mockTree)
+        cont = (view next x) theDir
 
     eval (TF.Pure _) = ""

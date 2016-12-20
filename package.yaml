@@ -17,7 +17,8 @@ library:
   source-dirs: src
   dependencies:
     - directory
-    - fclabels
+    - microlens
+    - microlens-th
     - mtl
     - transformers
     - deepseq
@@ -51,7 +52,8 @@ tests:
       - hspec-core
       - HUnit
       - QuickCheck
-      - fclabels
+      - microlens
+      - microlens-th
       - free
 
 benchmarks:
@@ -68,6 +70,7 @@ benchmarks:
       - novelist
       - criterion
       - QuickCheck
-      - fclabels
+      - microlens
+      - microlens-th
       - deepseq
       - free

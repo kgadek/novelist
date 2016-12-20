@@ -23,14 +23,17 @@ import           Control.DeepSeq (NFData)
 -- recursion-schemes
 import           Data.Functor.Foldable
 
--- fclabels
-import           Data.Label
+-- microlens
+import           Lens.Micro
+
+-- microlens-th
+import           Lens.Micro.TH
 
 
 newtype Fix2 (f :: (* -> *) -> * -> *) (g :: (* -> *)) 
   = Fix2 { _unFix2 :: f g (Fix2 f g) }
   deriving (Generic)
-mkLabel ''Fix2
+makeLenses ''Fix2
 
 instance Show1 (f g) => Show (Fix2 f g) where
   showsPrec d (Fix2 a) = showParen (d >= 11) $ showString "Fix2 " . showsPrec1 11 a

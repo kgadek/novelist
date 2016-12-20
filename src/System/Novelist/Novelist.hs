@@ -15,9 +15,12 @@ import           GHC.Generics (Generic)
 -- deepseq
 import           Control.DeepSeq (NFData)
 
--- fclabels
-import           Data.Label
-import qualified Data.Label.Partial as Partial
+-- microlens
+import           Lens.Micro
+import           Lens.Micro.Extras
+
+-- microlens-th
+import           Lens.Micro.TH
 
 
 data Novella
@@ -27,7 +30,7 @@ data Novella
         , _contents :: [Novella]
         }
   deriving (Show, Eq, Generic, NFData)
-mkLabel ''Novella
+makeLenses ''Novella
 
 
 file :: String -> Novella
@@ -40,8 +43,8 @@ isNameEnabled :: String -> Bool
 isNameEnabled = not . (".disabled" `isSuffixOf`)
 
 isEnabled :: Novella -> Bool
-isEnabled = isNameEnabled . get name
+isEnabled = isNameEnabled . view name
 
 prune :: [Novella] -> [Novella]
-prune = fmap (Partial.modify' contents prune) . filter isEnabled
+prune = fmap (over contents prune) . filter isEnabled
 

@@ -99,8 +99,7 @@ prune :: [Novella] -> [Novella]
 prune = fmap (cata alg) . filter isEnabled
   where
     alg :: NovellaF [] Novella -> Novella
-    alg (File n)  = Fix2 . File $ n
-    alg (Dir n c) = Fix2 . Dir n $ filter isEnabled c
+    alg = Fix2 . over contents (filter isEnabled)
 
 
 data DirectoryListing

@@ -31,15 +31,11 @@ import           Test.QuickCheck (property, (==>))
 import qualified Test.QuickCheck as QC
 
 -- novelist
-{-import           System.Novelist (convertFtoNormal)-}
-import qualified System.Novelist.Novelist   as Novelist
 import qualified System.Novelist.NovelistF   as NovelistF
 import qualified System.Novelist.Internal.Fix2 as NovelistF
 
 --
 import qualified System.Novelist.Arbitrary.QuickCheckF as NovelistFQC
-import qualified System.Novelist.Arbitrary.QuickCheck as NovelistQC
-import           System.Novelist (novellasFtoN)
 
 
 {-# ANN module ("HLint: ignore Redundant do"::String) #-}
@@ -47,62 +43,6 @@ import           System.Novelist (novellasFtoN)
 
 spec :: Spec
 spec = do
-    describe "System.Novelist.Novelist" $ do
-      describe "isNameEnabled" $ do
-        it "accepts paths not ending with .disabled" $ do
-          Novelist.isNameEnabled ""                        @?= True
-          Novelist.isNameEnabled "abc"                     @?= True
-          Novelist.isNameEnabled "abc.disabled_not_really" @?= True
-        it "rejects paths ending with .disabled" $ do
-          Novelist.isNameEnabled ".disabled"                        @?= False
-          Novelist.isNameEnabled "abc.disabled"                     @?= False
-          Novelist.isNameEnabled "abc.disabled_not_really.disabled" @?= False
-      describe "isEnabled" $ do
-        it "accepts paths not ending with .disabled" $ do
-          Novelist.isEnabled (Novelist.file ""                       ) @?= True
-          Novelist.isEnabled (Novelist.file "abc"                    ) @?= True
-          Novelist.isEnabled (Novelist.file "abc.disabled_not_really") @?= True
-          Novelist.isEnabled (Novelist.dir ""                        []) @?= True
-          Novelist.isEnabled (Novelist.dir "abc"                     []) @?= True
-          Novelist.isEnabled (Novelist.dir "abc.disabled_not_really" []) @?= True
-        it "rejects paths ending with .disabled" $ do
-          Novelist.isEnabled (Novelist.file ".disabled"                       ) @?= False
-          Novelist.isEnabled (Novelist.file "abc.disabled"                    ) @?= False
-          Novelist.isEnabled (Novelist.file "abc.disabled_not_really.disabled") @?= False
-          Novelist.isEnabled (Novelist.dir ".disabled"                        []) @?= False
-          Novelist.isEnabled (Novelist.dir "abc.disabled"                     []) @?= False
-          Novelist.isEnabled (Novelist.dir "abc.disabled_not_really.disabled" []) @?= False
-      describe "prune" $ do
-        it "works with one-level" $ do
-          Novelist.prune [ file1
-                  , dir1 [file1, file2]
-                  , dir2 [file2, file3]
-                  , file2
-                  ] `toplevelPathsShouldBe` [
-                    file1
-                  , dir1 [file1, file2]
-                  ]
-          Novelist.prune [ dir3 [file2, dir2 [], dir1 [], file1]
-                  ] `toplevelPathsShouldBe` [
-                    dir3 [file2, dir2 [], dir1 [], file1]
-                  ]
-        it "works with multiple-levels" $ do
-          Novelist.prune [ file1
-                  , dir1 [file1, file2]
-                  , dir2 [file1, file2, file3]
-                  ] @?= [
-                    file1
-                  , dir1 [file1]
-                  ]
-        it "is an identify for all-good trees" $ property $
-          \(xs :: [NovelistQC.ANovella NovelistQC.AllEnabled]) ->
-            let xxs = coerce xs
-             in Novelist.prune xxs == xxs
-        it "is a cleaner for all-bad trees" $ property $
-          \(xs :: [NovelistQC.ANovella NovelistQC.AllDisabled]) ->
-            let xxs = coerce xs
-             in null . Novelist.prune $ xxs
-
     describe "System.Novelist.NovelistF" $ do
       describe "isNameEnabled" $ do
         it "accepts paths not ending with .disabled" $ do
@@ -163,15 +103,6 @@ spec = do
           \(xs :: [NovelistFQC.ANovella NovelistFQC.AllDisabled]) ->
             let xxs = coerce xs
              in null . NovelistF.prune $ xxs
-    describe "System.Novelist._" $ do
-      it "implementations are equal" $ property $
-        \(xs :: [NovelistFQC.ANovella NovelistFQC.Mixed]) ->
-          let ys :: [Novelist.Novella]
-              ys = (novellasFtoN . NovelistFQC.unANovella) <$> xs
-              xxs, yys :: [String]
-              xxs = topLevelNames . NovelistF.prune . coerce $ xs
-              yys = topLevelNames . Novelist.prune . coerce $ ys
-           in xxs == yys
   where
     fileF1 = NovelistF.file "abc"
     fileF2 = NovelistF.file "def.disabled"
@@ -179,12 +110,6 @@ spec = do
     dirF1 = NovelistF.Fix2 . NovelistF.Dir "mno"
     dirF2 = NovelistF.Fix2 . NovelistF.Dir "pqr.disabled"
     dirF3 = NovelistF.Fix2 . NovelistF.Dir "stu"
-    file1 = Novelist.file "abc"
-    file2 = Novelist.file "def.disabled"
-    file3 = Novelist.file "ghi"
-    dir1 = Novelist.dir "mno"
-    dir2 = Novelist.dir "pqr.disabled"
-    dir3 = Novelist.dir "stu"
 
 class TopLevelNames a where
     topLevelNames :: [a] -> [String]
@@ -192,12 +117,5 @@ class TopLevelNames a where
 instance TopLevelNames NovelistF.Novella where
     topLevelNames = (view (NovelistF.unFix2 . NovelistF.name) <$>)
 
-instance TopLevelNames Novelist.Novella where
-    topLevelNames = (view Novelist.name <$>)
-
 toplevelPathsFShouldBe :: [NovelistF.Novella] -> [NovelistF.Novella] -> Assertion
 toplevelPathsFShouldBe = (@?=) `on` (view (NovelistF.unFix2 . NovelistF.name) <$>)
-
-
-toplevelPathsShouldBe :: [Novelist.Novella] -> [Novelist.Novella] -> Assertion
-toplevelPathsShouldBe = (@?=) `on` (view Novelist.name <$>)

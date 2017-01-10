@@ -21,12 +21,9 @@ import           Lens.Micro
 import           Lens.Micro.Extras
 
 -- novelist
-import           System.Novelist (novellasFtoN)
 import qualified System.Novelist.NovelistF   as NovelistF
-import qualified System.Novelist.Novelist   as Novelist
 
 --
-import qualified System.Novelist.Arbitrary.QuickCheck as NovelistQC
 import qualified System.Novelist.Arbitrary.QuickCheckF as NovelistFQC
 
 
@@ -41,24 +38,19 @@ main :: IO ()
 main = defaultMain [
     bgroup "System.Novelist  size = 10" [
       bench "NovelistF.prune" . nf NovelistF.prune $ dataF10
-    , bench "Novelist.prune" . nf Novelist.prune $ data10
     ]
   , bgroup "System.Novelist  size =     100" [
       bench "NovelistF.prune" . nf NovelistF.prune $ dataF100
-    , bench "Novelist.prune" . nf Novelist.prune $ data100
     ]
   , bgroup "System.Novelist  size =   1,000" [
       bench "NovelistF.prune" . nf NovelistF.prune $ dataF1000
-    , bench "Novelist.prune" . nf Novelist.prune $ data1000
     ]
   , bgroup "System.Novelist  size =  10,000" [
       bench "NovelistF.prune" . nf NovelistF.prune $ dataF10000
-    , bench "Novelist.prune" . nf Novelist.prune $ data10000
     ]
   {-
    -, bgroup "System.Novelist  size = 100,000" [
    -    bench "NovelistF.prune" . nf NovelistF.prune $ dataF100000
-   -  , bench "Novelist.prune" . nf Novelist.prune $ data100000
    -  ]
    -}
   ]
@@ -70,9 +62,3 @@ main = defaultMain [
     dataF1000   = NF.force $ genPruneBench seed 1000
     dataF10000  = NF.force $ genPruneBench seed 10000
     dataF100000 = NF.force $ genPruneBench seed 100000
-    data10, data100, data1000, data10000, data100000 :: [Novelist.Novella]
-    data10     = NF.force $ (novellasFtoN <$>) dataF10
-    data100    = NF.force $ (novellasFtoN <$>) dataF100
-    data1000   = NF.force $ (novellasFtoN <$>) dataF1000
-    data10000  = NF.force $ (novellasFtoN <$>) dataF10000
-    data100000 = NF.force $ (novellasFtoN <$>) dataF100000

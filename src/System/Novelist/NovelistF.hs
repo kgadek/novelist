@@ -8,21 +8,6 @@
 {-# LANGUAGE TypeOperators #-}
 
 module System.Novelist.NovelistF where
-{-
- -module System.Novelist.NovelistF (
- -  -- data
- -    Novella, NovellaF(..)
- -  , Fix2(..)
- -    -- smart constructors
- -  , file, dir
- -    -- lens
- -  , name, contents
- -  , unFix2
- -  -- functions
- -  , isNameEnabled, isEnabled
- -  , prune
- -) where
- -}
 
 -- base
 import           Data.List (isSuffixOf)
@@ -35,13 +20,6 @@ import           Data.Maybe (listToMaybe, mapMaybe)
 
 -- deepseq
 import           Control.DeepSeq (NFData)
-
--- fclabels
-{-import           Data.Label-}
-{-import qualified Data.Label.Base as FCBase-}
-{-import qualified Data.Label.Poly as Poly-}
-{-import qualified Data.Label.Partial as Partial-}
-{-import           Data.Label.Partial ((:~>))-}
 
 -- microlens
 import           Lens.Micro

@@ -6,7 +6,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module System.Novelist.Internal.Fix2 (
+module Novelist.Types.Fix2 (
     Fix2(Fix2)
   , unFix2
 ) where

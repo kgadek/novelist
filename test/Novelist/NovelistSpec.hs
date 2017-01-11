@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module System.NovelistSpec (spec) where
+module Novelist.NovelistSpec (spec) where
 
 -- base
 import           Prelude hiding ((.))
@@ -31,11 +31,11 @@ import           Test.QuickCheck (property, (==>))
 import qualified Test.QuickCheck as QC
 
 -- novelist
-import qualified System.Novelist.NovelistF   as NovelistF
-import qualified System.Novelist.Internal.Fix2 as NovelistF
+import qualified Novelist.NovelistF as NovelistF
+import qualified Novelist.Types     as NovelistF
 
 --
-import qualified System.Novelist.Arbitrary.QuickCheckF as NovelistFQC
+import qualified Novelist.Arbitrary.QuickCheckF as NovelistFQC
 
 
 {-# ANN module ("HLint: ignore Redundant do"::String) #-}
@@ -43,7 +43,7 @@ import qualified System.Novelist.Arbitrary.QuickCheckF as NovelistFQC
 
 spec :: Spec
 spec = do
-    describe "System.Novelist.NovelistF" $ do
+    describe "Novelist.NovelistF" $ do
       describe "isNameEnabled" $ do
         it "accepts paths not ending with .disabled" $ do
           NovelistF.isNameEnabled ""                        @?= True

@@ -3,7 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module System.Novelist.Arbitrary.QuickCheckF (
+module Novelist.Arbitrary.QuickCheckF (
     ANovella(..)
   , Validity(..)
 ) where
@@ -11,23 +11,12 @@ module System.Novelist.Arbitrary.QuickCheckF (
 
 -- base
 import           Data.List (isSuffixOf)
-import           Data.Function (on)
-import           Control.Monad (liftM)
-import           Data.Coerce (coerce)
-
--- microlens
-import           Lens.Micro
-
--- microlens-th
-import           Lens.Micro.TH
 
 -- QuickCheck
-import           Test.QuickCheck (property, (==>))
 import qualified Test.QuickCheck as QC
 
 -- novelist
-import qualified System.Novelist.NovelistF as N
-import qualified System.Novelist.Internal.Fix2 as N
+import qualified Novelist.Types as N
 
 
 data Validity
@@ -67,18 +56,21 @@ instance (ArbitraryNovellaValidity a) => QC.Arbitrary (ANovella a) where
     arbitrary = sqrtSize arbitraryNovellaValidity
 
 
-instance ArbitraryNovellaValidity AllEnabled where
+instance ArbitraryNovellaValidity 'AllEnabled where
     arbitraryNovellaValidity = ANovella <$> arbitraryNovella AllEnabled
 
-instance ArbitraryNovellaValidity AllDisabled where
+instance ArbitraryNovellaValidity 'AllDisabled where
     arbitraryNovellaValidity = ANovella <$> arbitraryNovella AllDisabled
 
-instance ArbitraryNovellaValidity Mixed where
+instance ArbitraryNovellaValidity 'Mixed where
     arbitraryNovellaValidity = ANovella <$> arbitraryNovella Mixed
 
 -- |Resize QuickCheck's internal size to sqrt of itself.
 sqrtSize :: QC.Gen a -> QC.Gen a
-sqrtSize f = QC.sized $ \(n::Int) -> QC.resize (round . sqrt . fromIntegral $ n) f
+sqrtSize f = QC.sized $ \(n::Int) -> QC.resize (round . targetSize $ n) f
+  where
+    targetSize :: Int -> Double
+    targetSize = sqrt . fromIntegral
                           
 ifM :: Monad m => m Bool -> m a -> m a -> m a
 ifM mb p q = mb >>= (\b -> if b then p else q)

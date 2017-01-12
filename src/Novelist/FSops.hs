@@ -1,5 +1,9 @@
+{-# LANGUAGE QuasiQuotes #-}
 module Novelist.FSops where
 
+
+-- base
+import           Text.Printf (printf)
 
 -- free
 import           Control.Monad.Free (liftF, Free)
@@ -10,7 +14,6 @@ import           Data.Functor.Foldable
 
 -- microlens
 import           Lens.Micro
-import           Lens.Micro.Extras
 
 --
 import           Novelist.Types (
@@ -45,18 +48,19 @@ rootDirName :: Lens' MockDirectoryTree String
 rootDirName = unFix2 . mName
 
 flattenMockDir :: MockDirectoryTree -> MockDirectoryTreeF [] String
-flattenMockDir (Fix2 m) = over mDirs (fmap (view rootDirName)) m
+flattenMockDir (Fix2 m) = over mDirs (^.. each . rootDirName) m
 
 pp2 :: MockDirectoryTree -> Free FSopsF r -> String
 pp2 mockTree = cata eval
   where
+        msg = "LISTDIR: " ++ view dirName x ++ "\n  RESULT: " ++ show theDir ++ "\n"
     eval :: TF.FreeF FSopsF r String -> String
     eval (TF.Free x@ListDir{}) = msg ++ cont
       where
-        msg = "LISTDIR: " ++ view dirName x ++ "\n  RESULT: " ++ show theDir ++ "\n"
-        theDir = DirectoryListing (view (unFix2 . mName) <$> view (unFix2 . mDirs) mockTree)
-                                  (view (unFix2 . mFiles) mockTree)
-        cont = (view next x) theDir
+        mockedDirectory = DirectoryListing immediateDirs immediateFiles
+        immediateDirs = mockTree ^.. unFix2 . mDirs . each . rootDirName
+        immediateFiles = mockTree ^. unFix2 . mFiles
+        cont = (x ^. next) mockedDirectory
 
     eval (TF.Pure _) = ""
 

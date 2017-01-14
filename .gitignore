@@ -15,6 +15,7 @@ tags
 *.hp
 *.eventlog
 bench.html
+core-html/
 
 ## Temp files
 

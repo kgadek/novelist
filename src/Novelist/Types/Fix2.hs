@@ -23,9 +23,6 @@ import           Control.DeepSeq (NFData)
 -- recursion-schemes
 import           Data.Functor.Foldable
 
--- microlens
-import           Lens.Micro
-
 -- microlens-th
 import           Lens.Micro.TH
 

@@ -53,18 +53,19 @@ tests:
     source-dirs:
       - test
       - qc-gen
-    ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
     dependencies:
       - novelist
+      - mtl
+      - containers
+      - recursion-schemes
       - hspec
       - hspec-core
+      - hspec-expectations
       - HUnit
       - QuickCheck
       - microlens
       - microlens-th
+      - microlens-ghc
       - free
 
 benchmarks:

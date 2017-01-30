@@ -16,8 +16,8 @@ import           Novelist.Types.DirectoryListing (DirectoryListing)
 
 data FSopsF next
   = ListDir {
-      _dirName :: String
-    , _continueWithDirectoryListing :: DirectoryListing -> next
+      _dirPath :: String
+    , _continueWithDirectoryListing :: Maybe DirectoryListing -> next
     }
   deriving (Functor)
 makeLenses ''FSopsF
@@ -25,6 +25,6 @@ makeLenses ''FSopsF
 type FSops a = Free FSopsF a
 
 
-listDir :: String -> FSops DirectoryListing
+listDir :: String -> FSops (Maybe DirectoryListing)
 listDir n = liftF $ ListDir n id
 

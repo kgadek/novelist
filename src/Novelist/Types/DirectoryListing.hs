@@ -12,5 +12,5 @@ data DirectoryListing
       _dirs :: [String]
     , _files :: [String]
     }
-  deriving (Show)
+  deriving (Show, Eq)
 makeLenses ''DirectoryListing

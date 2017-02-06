@@ -81,25 +81,35 @@ spec = do
               listDir "e1/e2"
         describe "responses" $ do
           it "responds with valid ans for root path: ." $ do
-            shouldMatchTrace [Just $ Just DirectoryListing { _dirs = ["d1", "d2"]
-                                                   , _files = ["f1", "f2"]
-                                                   }
-                     ]
+            shouldMatchTrace [ Just $ Just DirectoryListing { _dirs = ["d1", "d2"]
+                                                            , _files = ["f1", "f2"]
+                                                            }
+                             ]
                 . map (^? dirLstAns)
                 . getTracesWithMock mockTree1 $ do
               listDir "."
           it "responds with valid ans for subpaths: d1, d2/d3" $ do
             shouldMatchTrace [ Just $ Just DirectoryListing { _dirs = []
-                                                    , _files = ["f1", "f2"]
-                                                    }
-                     , Just $ Just DirectoryListing { _dirs = []
-                                                    , _files = ["f1"]
-                                                    }
-                     ]
+                                                            , _files = ["f1", "f2"]
+                                                            }
+                             , Just $ Just DirectoryListing { _dirs = []
+                                                            , _files = ["f1"]
+                                                            }
+                             ]
                 . map (^? dirLstAns)
                 . getTracesWithMock mockTree1 $ do
               listDir "d1"
               listDir "d2/d3"
+          it "responds with empty ans for subpaths: d999, d1/d999, d2/d3/d999/d999" $ do
+            shouldMatchTrace [ Just Nothing
+                             , Just Nothing
+                             , Just Nothing
+                             ]
+                . map (^? dirLstAns)
+                . getTracesWithMock mockTree1 $ do
+              listDir "d99"
+              listDir "d1/d999"
+              listDir "d2/d3/d999/d999"
 
 
 mockTree1 :: MockDirectoryTree

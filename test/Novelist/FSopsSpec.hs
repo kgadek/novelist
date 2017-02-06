@@ -13,6 +13,9 @@ import           Test.Hspec (Spec, describe, it, shouldBe, Expectation)
 -- microlens-ghc
 import           Lens.Micro.GHC
 
+-- filepath
+import           System.FilePath (splitPath, pathSeparator)
+
 -- free
 import qualified Control.Monad.Trans.Free as TF
 
@@ -37,56 +40,56 @@ import           Novelist.Types.FSTrace (
   )
 
 
-infix 1 `beShould`
-beShould :: (Show a, Eq a) => a -> a -> Expectation
-beShould = flip shouldBe
+infix 1 `shouldMatchTrace`
+shouldMatchTrace :: (Show a, Eq a) => a -> a -> Expectation
+shouldMatchTrace = flip shouldBe
 
 spec :: Spec
 spec = do
     describe "FSops computation" $ do
       it "non-effectful computations are non-effectful" $ do
-        beShould []
+        shouldMatchTrace []
             . getTracesWithMock mockTree1 $ do
           return ()
       describe "listDir" $ do
         describe "queries" $ do
           it "allows asking for root path: ." $ do
-            beShould [Just "."]
+            shouldMatchTrace [Just "."]
                 . map (^? dirLstQuery)
                 . getTracesWithMock mockTree1 $ do
               listDir "."
           it "allows asking for subpath: d1" $ do
-            beShould [Just "d1"]
+            shouldMatchTrace [Just "d1"]
                 . map (^? dirLstQuery)
                 . getTracesWithMock mockTree1 $ do
               listDir "d1"
           it "allows asking for subpath: d1/d2" $ do
-            beShould [Just "d1/d2"]
+            shouldMatchTrace [Just "d1/d2"]
                 . map (^? dirLstQuery)
                 . getTracesWithMock mockTree1 $ do
               listDir "d1/d2"
           it "allows asking for subpath with leading no-ops: ././d1" $ do
-            beShould [Just "././d1"]
+            shouldMatchTrace [Just "d1"]
                 . map (^? dirLstQuery)
                 . getTracesWithMock mockTree1 $ do
               listDir "././d1"
           it "allows asking for non-existent subpaths: e1, e1/e2" $ do
-            beShould [Just "e1", Just "e1/e2"]
+            shouldMatchTrace [Just "e1", Just "e1/e2"]
                 . map (^? dirLstQuery)
                 . getTracesWithMock mockTree1 $ do
               listDir "e1"
               listDir "e1/e2"
         describe "responses" $ do
           it "responds with valid ans for root path: ." $ do
-            beShould [Just $ Just DirectoryListing { _dirs = ["d1", "d2"]
+            shouldMatchTrace [Just $ Just DirectoryListing { _dirs = ["d1", "d2"]
                                                    , _files = ["f1", "f2"]
                                                    }
                      ]
                 . map (^? dirLstAns)
                 . getTracesWithMock mockTree1 $ do
-              listDir "/"
+              listDir "."
           it "responds with valid ans for subpaths: d1, d2/d3" $ do
-            beShould [ Just $ Just DirectoryListing { _dirs = []
+            shouldMatchTrace [ Just $ Just DirectoryListing { _dirs = []
                                                     , _files = ["f1", "f2"]
                                                     }
                      , Just $ Just DirectoryListing { _dirs = []
@@ -120,6 +123,20 @@ directoryListing theMock = DirectoryListing { _dirs = flattened ^. mDirs . to Ma
                                             }
     where flattened = flattenMockDir theMock
 
+queryMock :: String -> MockDirectoryTree -> Maybe DirectoryListing
+queryMock query mock | query == "." = Just . directoryListing $ mock
+                     | otherwise    = directoryListing <$> deepQueryTree
+  where pthComponents :: [FilePath]
+        pthComponents = dropTailSeparator <$> splitPath query
+
+        dropTailSeparator = takeWhile (not . (== pathSeparator))
+  
+        deepQueryTree :: Maybe MockDirectoryTree
+        deepQueryTree = foldl shallowQuery (Just mock) pthComponents
+
+        shallowQuery :: Maybe MockDirectoryTree -> FilePath -> Maybe MockDirectoryTree
+        shallowQuery Nothing _ = Nothing
+        shallowQuery (Just m) pth = m ^? unFix2 . mDirs . ix pth
 
 getTracesWithMock :: MockDirectoryTree -> FSops r -> [FSTrace]
 getTracesWithMock mockTree = cata eval
@@ -131,7 +148,7 @@ getTracesWithMock mockTree = cata eval
         lstTrace = GetDirLst { _dirLstQuery = x ^. dirPath
                              , _dirLstAns = queryResult
                              }
-        queryResult = mockTree ^? unFix2 . mDirs . ix (x ^. dirPath) . to directoryListing
+        queryResult = queryMock (x ^. dirPath) mockTree
 
     eval (TF.Pure _) = []
 

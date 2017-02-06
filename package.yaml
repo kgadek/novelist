@@ -31,6 +31,7 @@ library:
     - recursion-schemes
     - free
     - autoexporter
+    - filepath
   when:
     - condition: flag(dump-core)
       ghc-options: -fplugin=DumpCore -fplugin-opt DumpCore:core-html
@@ -67,6 +68,7 @@ tests:
       - microlens-th
       - microlens-ghc
       - free
+      - filepath
 
 benchmarks:
   novelist-criterion:

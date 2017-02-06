@@ -10,6 +10,9 @@ import           Lens.Micro.TH
 -- free
 import           Control.Monad.Free (Free, liftF)
 
+-- filepath
+import           System.FilePath (normalise)
+
 --
 import           Novelist.Types.DirectoryListing (DirectoryListing)
 
@@ -26,5 +29,5 @@ type FSops a = Free FSopsF a
 
 
 listDir :: String -> FSops (Maybe DirectoryListing)
-listDir n = liftF $ ListDir n id
+listDir n = liftF $ ListDir (normalise n) id
 

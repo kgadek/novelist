@@ -1,0 +1,14 @@
+dependencies:
+  cache_directories:
+    - "~/.stack"
+    - "~/bin"
+  pre:
+    - if [ ! -f ~/bin/stack ]; then wget https://github.com/commercialhaskell/stack/releases/download/v1.3.2/stack-1.3.2-linux-x86_64-static.tar.gz -O /tmp/stack.tar.gz && tar -zx --strip-components 1 -f /tmp/stack.tar.gz -C /tmp && sudo mv /tmp/stack ~/bin/stack; fi
+  override:
+    - stack setup
+    - stack build --test --no-run-tests --bench --no-run-benchmarks
+
+test:
+  override:
+    - stack test
+

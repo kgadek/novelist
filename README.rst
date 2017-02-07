@@ -5,6 +5,8 @@
 
 .. contents::
 
+.. image:: https://circleci.com/gh/kgadek/novelist/tree/master.svg?style=svg
+    :target: https://circleci.com/gh/kgadek/novelist/tree/master
 
 What is 'Novelist'
 ==================

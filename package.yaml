@@ -72,6 +72,7 @@ tests:
       - filepath
       - unix
       - directory
+      - autoexporter
 
 benchmarks:
   novelist-criterion:
@@ -91,3 +92,4 @@ benchmarks:
       - microlens-th
       - deepseq
       - free
+      - autoexporter

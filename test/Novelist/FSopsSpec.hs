@@ -1,9 +1,6 @@
 module Novelist.FSopsSpec where
 
 
--- base
-import           Text.Printf (printf)
-
 -- containers
 import qualified Data.Map.Lazy as Map
 
@@ -24,20 +21,23 @@ import           Data.Functor.Foldable
 
 -- (lib)
 import           Novelist.Types (
-    Fix2(Fix2), unFix2
+    unFix2
   , FSopsF(ListDir), FSops, dirPath, continueWithDirectoryListing, listDir
   , DirectoryListing(DirectoryListing), _dirs, _files
   )
 
 -- (test)
 import           Novelist.Types.MockDirectoryTreeF (
-    MockDirectoryTree, MockDirectoryTreeF(MockDirectoryTreeF), mName, mDirs, mFiles, rootDirName
+    MockDirectoryTree, mDirs, mFiles
   , mkDir, mkFile, buildMockDir
   , flattenMockDir
   )
 import           Novelist.Types.FSTrace (
     FSTrace(GetDirLst), dirLstQuery, dirLstAns, _dirLstQuery, _dirLstAns
   )
+
+
+{-# ANN module ("HLint: ignore Redundant do"::String) #-}
 
 
 infix 1 `shouldMatchTrace`
@@ -139,7 +139,7 @@ queryMock query mock | query == "." = Just . directoryListing $ mock
   where pthComponents :: [FilePath]
         pthComponents = dropTailSeparator <$> splitPath query
 
-        dropTailSeparator = takeWhile (not . (== pathSeparator))
+        dropTailSeparator = takeWhile (/= pathSeparator)
   
         deepQueryTree :: Maybe MockDirectoryTree
         deepQueryTree = foldl shallowQuery (Just mock) pthComponents

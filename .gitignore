@@ -4,6 +4,9 @@ novelist.cabal
 # HLint artifact
 report.html
 
+# Test results
+results.xml
+
 ## Build and test artifacts
 
 .stack-work/
@@ -15,7 +18,7 @@ tags
 *.hp
 *.eventlog
 bench.html
-core-html/
+core-html*
 
 ## Temp files
 

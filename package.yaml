@@ -22,11 +22,8 @@ flags:
 library:
   source-dirs: src
   dependencies:
-    - directory
     - microlens
     - microlens-th
-    - mtl
-    - transformers
     - deepseq
     - recursion-schemes
     - autoexporter

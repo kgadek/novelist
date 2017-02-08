@@ -1,14 +1,15 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Novelist.Types.FSopsF where
 
 
 -- microlens
-import           Lens.Micro.TH
+import           Lens.Micro (Lens')
 
--- free
-import           Control.Monad.Free (Free, liftF)
+-- freer
+import           Control.Monad.Freer (Member, Eff, send)
 
 -- filepath
 import           System.FilePath (normalise)
@@ -17,17 +18,13 @@ import           System.FilePath (normalise)
 import           Novelist.Types.DirectoryListing (DirectoryListing)
 
 
-data FSopsF next
-  = ListDir {
-      _dirPath :: String
-    , _continueWithDirectoryListing :: Maybe DirectoryListing -> next
-    }
-  deriving (Functor)
-makeLenses ''FSopsF
+data FSopsF s where
+    ListDir :: { _dirPath :: String } -> FSopsF (Maybe DirectoryListing)
 
-type FSops a = Free FSopsF a
+dirPath :: Lens' (FSopsF (Maybe DirectoryListing)) String
+dirPath f ListDir{ _dirPath = x } = ListDir <$> f x
 
 
-listDir :: String -> FSops (Maybe DirectoryListing)
-listDir n = liftF $ ListDir (normalise n) id
+listDir :: Member FSopsF r => FilePath -> Eff r (Maybe DirectoryListing)
+listDir n = send (ListDir (normalise n))
 

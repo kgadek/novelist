@@ -1,3 +1,7 @@
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE DataKinds #-}
+
 module Novelist.FSopsSpec where
 
 
@@ -13,8 +17,8 @@ import           Lens.Micro.GHC
 -- filepath
 import           System.FilePath (splitPath, pathSeparator)
 
--- free
-import qualified Control.Monad.Trans.Free as TF
+-- freer
+import           Control.Monad.Freer (Eff, Arr, run, handleRelayS)
 
 -- recursion-schemes
 import           Data.Functor.Foldable
@@ -22,7 +26,7 @@ import           Data.Functor.Foldable
 -- (lib)
 import           Novelist.Types (
     unFix2
-  , FSopsF(ListDir), FSops, dirPath, continueWithDirectoryListing, listDir
+  , FSopsF(ListDir), dirPath, listDir
   , DirectoryListing(DirectoryListing), _dirs, _files
   )
 
@@ -148,18 +152,21 @@ queryMock query mock | query == "." = Just . directoryListing $ mock
         shallowQuery Nothing _ = Nothing
         shallowQuery (Just m) pth = m ^? unFix2 . mDirs . ix pth
 
-getTracesWithMock :: MockDirectoryTree -> FSops r -> [FSTrace]
-getTracesWithMock mockTree = cata eval
+getTracesWithMock :: MockDirectoryTree
+                  -> Eff '[FSopsF] a
+                  -> [FSTrace]
+getTracesWithMock mockTree =
+    reverse . run . handleRelayS [] (\s _ -> pure s) go
   where
-    eval :: TF.FreeF FSopsF r [FSTrace] -> [FSTrace]
-    eval (TF.Free x@ListDir{}) = lstTrace : rest
+    go :: [FSTrace]
+       -> FSopsF v
+       -> ([FSTrace] -> Arr r v [FSTrace])
+       -> Eff r [FSTrace]
+    go traces x@ListDir{} q = q (lstTrace : traces) queryResult
       where
-        rest = (x ^. continueWithDirectoryListing) queryResult
         lstTrace = GetDirLst { _dirLstQuery = x ^. dirPath
                              , _dirLstAns = queryResult
                              }
         queryResult = queryMock (x ^. dirPath) mockTree
-
-    eval (TF.Pure _) = []
 
 

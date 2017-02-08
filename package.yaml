@@ -29,9 +29,9 @@ library:
     - transformers
     - deepseq
     - recursion-schemes
-    - free
     - autoexporter
     - filepath
+    - freer
   when:
     - condition: flag(dump-core)
       ghc-options: -fplugin=DumpCore -fplugin-opt DumpCore:core-html
@@ -68,11 +68,11 @@ tests:
       - microlens
       - microlens-th
       - microlens-ghc
-      - free
       - filepath
       - unix
       - directory
       - autoexporter
+      - freer
 
 benchmarks:
   novelist-criterion:
@@ -91,5 +91,5 @@ benchmarks:
       - microlens
       - microlens-th
       - deepseq
-      - free
       - autoexporter
+      - freer

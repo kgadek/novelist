@@ -7,18 +7,11 @@ module Novelist.NovelistSpec (spec) where
 -- base
 import           Prelude hiding ((.))
 import           Control.Category ((.))
-import           Control.Monad (liftM)
 import           Data.Coerce (coerce)
 import           Data.Function (on)
-import           Data.List (isSuffixOf)
-import           Data.Proxy
 
 -- microlens
-import           Lens.Micro
 import           Lens.Micro.Extras
-
--- microlens-th
-import           Lens.Micro.TH
 
 -- Hspec
 import           Test.Hspec (Spec, describe, it)
@@ -27,7 +20,6 @@ import           Test.Hspec (Spec, describe, it)
 import           Test.HUnit ((@?=), Assertion)
 
 -- QuickCheck
-import           Test.QuickCheck (property, (==>))
 import qualified Test.QuickCheck as QC
 
 -- novelist
@@ -96,11 +88,11 @@ spec = do
                   , fileF1
                   ]
         it "is an identify for all-good trees" $ property $
-          \(xs :: [NovelistFQC.ANovella NovelistFQC.AllEnabled]) ->
+          \(xs :: [NovelistFQC.ANovella 'NovelistFQC.AllEnabled]) ->
             let xxs = coerce xs
              in NovelistF.prune xxs == xxs
         it "is a cleaner for all-bad trees" $ property $
-          \(xs :: [NovelistFQC.ANovella NovelistFQC.AllDisabled]) ->
+          \(xs :: [NovelistFQC.ANovella 'NovelistFQC.AllDisabled]) ->
             let xxs = coerce xs
              in null . NovelistF.prune $ xxs
   where

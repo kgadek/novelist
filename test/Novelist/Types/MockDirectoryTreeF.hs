@@ -43,7 +43,9 @@ rootDirName = unFix2 . mName
 flattenMockDir :: MockDirectoryTree -> MockDirectoryTreeF (Map.Map String) String
 flattenMockDir (Fix2 m) = over mDirs flatten m
   where flatten :: Map.Map String MockDirectoryTree -> Map.Map String String
-        flatten x = Map.fromList (x ^.. each . rootDirName . to (\x -> (x,x)))
+        flatten mp = Map.fromList $ mp ^.. each . rootDirName . to dup
+        dup :: a -> (a, a)
+        dup x = (x, x)
 
 type MockDirectoryTreeBuilder = State ([String], [MockDirectoryTree]) ()
 

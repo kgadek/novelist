@@ -5,6 +5,9 @@
 module Novelist.FSopsSpec where
 
 
+-- base
+import           Control.Monad (void)
+
 -- containers
 import qualified Data.Map.Lazy as Map
 
@@ -19,9 +22,6 @@ import           System.FilePath (splitPath, pathSeparator)
 
 -- freer
 import           Control.Monad.Freer (Eff, Arr, run, handleRelayS)
-
--- recursion-schemes
-import           Data.Functor.Foldable
 
 -- (lib)
 import           Novelist.Types (
@@ -81,8 +81,8 @@ spec = do
             shouldMatchTrace [Just "e1", Just "e1/e2"]
                 . map (^? dirLstQuery)
                 . getTracesWithMock mockTree1 $ do
-              listDir "e1"
-              listDir "e1/e2"
+              void $ listDir "e1"
+              void $ listDir "e1/e2"
         describe "responses" $ do
           it "responds with valid ans for root path: ." $ do
             shouldMatchTrace [ Just $ Just DirectoryListing { _dirs = ["d1", "d2"]
@@ -102,8 +102,8 @@ spec = do
                              ]
                 . map (^? dirLstAns)
                 . getTracesWithMock mockTree1 $ do
-              listDir "d1"
-              listDir "d2/d3"
+              void $ listDir "d1"
+              void $ listDir "d2/d3"
           it "responds with empty ans for subpaths: d999, d1/d999, d2/d3/d999/d999" $ do
             shouldMatchTrace [ Just Nothing
                              , Just Nothing
@@ -111,9 +111,9 @@ spec = do
                              ]
                 . map (^? dirLstAns)
                 . getTracesWithMock mockTree1 $ do
-              listDir "d99"
-              listDir "d1/d999"
-              listDir "d2/d3/d999/d999"
+              void $ listDir "d99"
+              void $ listDir "d1/d999"
+              void $ listDir "d2/d3/d999/d999"
 
 
 mockTree1 :: MockDirectoryTree

@@ -1,4 +1,4 @@
 module Main where
 
 main :: IO ()
-main = print 123
+main = print (123 :: Int)

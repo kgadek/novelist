@@ -87,11 +87,11 @@ spec = do
                   , dirF1 [fileF1, dirF1 [fileF1, dirF1 []]]
                   , fileF1
                   ]
-        it "is an identify for all-good trees" $ property $
+        it "is an identify for all-good trees" $ QC.property $
           \(xs :: [NovelistFQC.ANovella 'NovelistFQC.AllEnabled]) ->
             let xxs = coerce xs
              in NovelistF.prune xxs == xxs
-        it "is a cleaner for all-bad trees" $ property $
+        it "is a cleaner for all-bad trees" $ QC.property $
           \(xs :: [NovelistFQC.ANovella 'NovelistFQC.AllDisabled]) ->
             let xxs = coerce xs
              in null . NovelistF.prune $ xxs

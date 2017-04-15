@@ -27,7 +27,7 @@ import           Data.Functor.Foldable
 import           Lens.Micro.TH
 
 
-newtype Fix2 (f :: (* -> *) -> * -> *) (g :: (* -> *)) 
+newtype Fix2 (f :: (* -> *) -> * -> *) (g :: (* -> *))
   = Fix2 { _unFix2 :: f g (Fix2 f g) }
   deriving (Generic)
 makeLenses ''Fix2

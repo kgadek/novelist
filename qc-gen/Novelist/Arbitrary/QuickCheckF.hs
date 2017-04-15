@@ -71,7 +71,7 @@ sqrtSize f = QC.sized $ \(n::Int) -> QC.resize (round . targetSize $ n) f
   where
     targetSize :: Int -> Double
     targetSize = sqrt . fromIntegral
-                          
+
 ifM :: Monad m => m Bool -> m a -> m a -> m a
 ifM mb p q = mb >>= (\b -> if b then p else q)
 

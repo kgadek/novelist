@@ -144,7 +144,7 @@ queryMock query mock | query == "." = Just . directoryListing $ mock
         pthComponents = dropTailSeparator <$> splitPath query
 
         dropTailSeparator = takeWhile (/= pathSeparator)
-  
+
         deepQueryTree :: Maybe MockDirectoryTree
         deepQueryTree = foldl shallowQuery (Just mock) pthComponents
 

@@ -19,7 +19,7 @@ import           Lens.Micro.TH
 import           Novelist.Types.Fix2 (Fix2(Fix2))
 
 
-data NovellaF g a 
+data NovellaF g a
   = File { _name :: String
          }
   | Dir { _name :: String

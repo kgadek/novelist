@@ -66,7 +66,7 @@ spec = do
                   , dirF1 [fileF1, fileF2]
                   , dirF2 [fileF2, fileF3]
                   , fileF2
-                  ] `toplevelPathsFShouldBe` [ 
+                  ] `toplevelPathsFShouldBe` [
                     fileF1
                   , dirF1 [fileF1, fileF2]
                   ]

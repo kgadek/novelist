@@ -20,6 +20,10 @@ tags
 bench.html
 core-html*
 
+## Local config files
+
+.vscode
+
 ## Temp files
 
 *.DS_Store

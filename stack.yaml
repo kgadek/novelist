@@ -9,6 +9,7 @@ packages:
 
 extra-deps:
   - dump-core-0.1.3
+  - freer-effects-0.3.0.0
 
 flags: {}
 

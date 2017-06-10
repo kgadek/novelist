@@ -26,5 +26,5 @@ dirPath f ListDir{ _dirPath = x } = ListDir <$> f x
 
 
 listDir :: Member FSopsF r => FilePath -> Eff r (Maybe DirectoryListing)
-listDir n = send (ListDir (normalise n))
+listDir = send . ListDir . normalise
 

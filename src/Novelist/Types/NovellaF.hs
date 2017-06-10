@@ -41,8 +41,8 @@ instance Show1 f => Show1 (NovellaF f) where
   liftShowsPrec sp sl d (Dir n c) = showsBinaryWith showsPrec (liftShowsPrec sp sl) "Dir" d n c
 
 instance Eq1 f => Eq1 (NovellaF f) where
-  liftEq _ (File x) (File y) = x == y
+  liftEq _  (File x)  (File y)  = x == y
   liftEq eq (Dir x m) (Dir y n) = x == y && liftEq eq m n
-  liftEq _ _ _ = False
+  liftEq _  _         _         = False
 
 type Novella = Fix2 NovellaF []
